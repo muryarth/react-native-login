@@ -1,7 +1,7 @@
-import express from "express";
+import "dotenv/config"; 
 import chalk from "chalk";
+import app from "./src/app.js";
 
-const app = express();
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
