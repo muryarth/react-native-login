@@ -13,6 +13,45 @@ app.get('/', (req, res) => {
     res.status(200).json({ message: "Bem-vindo a nossa API" });
 });
 
+// Rota privada
+app.get("/users/:id", checkToken, async (req, res) => {
+    const id = req.params.id;
+
+    // Verifica se o usuário existe
+    const user = await User.findById(id, '-password');
+
+    if (!user) {
+        res.status(404).send({ message: "Usuário não encontrado" });
+    }
+    else {
+        res.status(200).json({ user });
+        //resposta
+    }
+
+});
+
+// Middleware que verifica o token
+function checkToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ message: "Acesso negado!" });
+    }
+
+    try {
+
+        const secret = process.env.SECRET;
+
+        jwt.verify(token, secret); // Caso o token não seja válido, gera um erro e cai no catch
+
+        next();
+    }
+    catch (error) {
+        res.status(400).json({ message: "Token inválido!" });
+    }
+}
+
 // Registro
 app.post('/auth/register', async (req, res) => {
     const { name, email, password, passwordConfirmation } = req.body;
@@ -112,7 +151,7 @@ app.post("/auth/login", async (req, res) => {
                     id: user._id
                 },
                 secret,
-            )
+            );
 
             res.status(200).json({ message: "Autenticação realizada com sucesso", token })
 
